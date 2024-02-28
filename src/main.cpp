@@ -1,49 +1,46 @@
 #include "../h/ABI.h"
-#include "../h/kTCB.h"
 #include "../h/kSemaphore.h"
+#include "../h/kTCB.h"
 
 void userMain();
 
-void userMainWrapper(void* arg){
+void userMainWrapper(void* arg) {
     userMain();
 }
 
 typedef kTCB* thread_t;
 
-void main(){
-
+void main() {
     thread_t mainT, userMainT;
-    auto stack_ptr = (uint64*) kMemoryAllocator::getInstance().kmem_alloc(DEFAULT_STACK_SIZE * sizeof(uint64));
+    auto stack_ptr =
+        (uint64*) kMemoryAllocator::instance().kmem_alloc(DEFAULT_STACK_SIZE * sizeof(uint64));
 
     kTCB::createThread(&mainT, nullptr, nullptr, nullptr, true);
     kTCB::createThread(&userMainT, &userMainWrapper, nullptr, stack_ptr, true);
 
-    asm volatile("csrw stvec, %[supervisorTrapASM]"
-            : : [supervisorTrapASM] "r" (&supervisorTrap));
+    asm volatile("csrw stvec, %[supervisorTrapASM]" : : [supervisorTrapASM] "r"(&supervisorTrap));
 
     bool break_condition;
     do {
         break_condition = true;
         kTCB::yield();
-        for (auto iterator = kTCB::list_threads.getIterator(); iterator != nullptr; iterator = iterator->next){
+        for (auto iterator = kTCB::queue_threads.getIterator(); iterator != nullptr;
+             iterator = iterator->next) {
             kTCB* tcb = iterator->data;
-            if (tcb->getStatus() != kTCB::TS_FINISHED){
+            if (tcb->getStatus() != kTCB::TS_FINISHED) {
                 break_condition = false;
-            }
-            else {
+            } else {
                 kTCB::deleteThread(tcb);
             }
         }
-    }
-    while (!break_condition);
+    } while (!break_condition);
 
-    while (kSemaphore* sem = kSemaphore::semaphore_list.popData()){
+    while (kSemaphore* sem = kSemaphore::queue_semaphores.popData()) {
         kSemaphore::closeSemaphore(sem);
     }
 
-    while (kTCB* tcb = kTCB::list_threads.popData()){
+    while (kTCB* tcb = kTCB::queue_threads.popData()) {
         kTCB::deleteThread(tcb);
     }
     kTCB::deleteThread(mainT);
-
 }

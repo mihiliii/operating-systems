@@ -3,10 +3,10 @@
 
 #include "kMemoryAllocator.h"
 
-template <typename T>
-class kQueue{
+template<typename T>
+class kQueue {
 
-    struct Element{
+    struct Element {
         T* data;
         Element* next;
     };
@@ -16,54 +16,53 @@ class kQueue{
 
 public:
 
-    Element* getIterator(){
+    Element* getIterator() {
         return head;
     }
 
-    kQueue(){
+    kQueue() {
         head = nullptr;
         tail = nullptr;
     }
 
     kQueue(const kQueue&) = delete;
 
-    bool isEmpty() const{
+    bool isEmpty() const {
         return (head == nullptr);
     }
 
-    void pushData(T* data){
-        auto newElement = (Element*) kMemoryAllocator::getInstance().kmem_alloc(sizeof(Element));
-        newElement->data = data;
-        newElement->next = nullptr;
+    void pushData(T* data) {
+        auto new_element = (Element*) kMemoryAllocator::instance().kmem_alloc(sizeof(Element));
+        new_element->data = data;
+        new_element->next = nullptr;
 
-        if (tail){
-            tail->next = newElement;
-            tail = newElement;
-        }
-        else {
-            head = newElement;
-            tail = newElement;
+        if (tail) {
+            tail->next = new_element;
+            tail = new_element;
+        } else {
+            head = new_element;
+            tail = new_element;
         }
     }
 
-    T* popData(){
+    T* popData() {
         if (!head) {
             return nullptr;
         }
 
-        Element* returnElement = head;
+        Element* return_element = head;
         head = head->next;
 
-        if (!head){
+        if (!head) {
             tail = nullptr;
         }
 
-        T* returnData = returnElement->data;
-        kMemoryAllocator::getInstance().mem_free(returnElement);
-        return returnData;
+        T* return_data = return_element->data;
+        kMemoryAllocator::instance().mem_free(return_element);
+        return return_data;
     }
 
-    bool find(T* data){
+    bool find(T* data) {
         for (Element* current = head; current != nullptr; current = current->next) {
             if (current->data == data)
                 return true;
@@ -72,26 +71,24 @@ public:
         return false;
     }
 
-    T* removeElement(T* data){
+    T* removeElement(T* data) {
         Element* previous = nullptr;
 
-        for (Element* current = head; current != nullptr; current = current->next){
+        for (Element* current = head; current != nullptr; current = current->next) {
             if (current->data == data) {
-                if (current == head){
+                if (current == head) {
                     head = current->next;
                     if (!head)
                         tail = nullptr;
-                }
-                else if (current == tail){
+                } else if (current == tail) {
                     tail = previous;
                     tail->next = nullptr;
-                }
-                else {
+                } else {
                     previous->next = current->next;
                 }
 
                 T* return_data = current->data;
-                kMemoryAllocator::getInstance().mem_free(current);
+                kMemoryAllocator::instance().mem_free(current);
                 return return_data;
             }
 
@@ -100,7 +97,6 @@ public:
 
         return nullptr;
     }
-
 };
 
 #endif

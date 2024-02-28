@@ -1,7 +1,7 @@
 #include "../h/kTCB.h"
 
 kTCB* kTCB::running_thread = nullptr;
-kQueue<kTCB> kTCB::list_threads;
+kQueue<kTCB> kTCB::queue_threads;
 
 extern "C" void pushAllRegisters();
 
@@ -14,28 +14,26 @@ int kTCB::createThread(kTCB** tcb, void (*body)(void*), void* args, uint64* ptr_
     return 0;
 }
 
-int kTCB::startThread(kTCB* tcb){
-    if (tcb->getStatus() == TS_INITIALIZED){
+int kTCB::startThread(kTCB* tcb) {
+    if (tcb->getStatus() == TS_INITIALIZED) {
         tcb->setStatus(TS_READY);
         kScheduler::put(tcb);
         return 0;
+    } else {
+        return -1;
     }
-
-    return -1;
 }
 
 void kTCB::yield() {
     pushAllRegisters();
-
     kTCB::dispatch();
-
     popAllRegisters();
 }
 
 void kTCB::dispatch() {
     kTCB* old = running_thread;
 
-    if (old->getStatus() != TS_FINISHED && old->getStatus() != TS_SUSPENDED){
+    if (old->getStatus() != TS_FINISHED && old->getStatus() != TS_SUSPENDED) {
         old->setStatus(TS_READY);
         kScheduler::put(old);
     }
@@ -54,15 +52,16 @@ int kTCB::exitThread() {
 
 int kTCB::deleteThread(kTCB* tcb) {
     kScheduler::removeElement(tcb);
-    kTCB::list_threads.removeElement(tcb);
+    kTCB::queue_threads.removeElement(tcb);
     delete tcb;
     return 0;
 }
 
 void kTCB::popSppSpieRegisters() {
-    asm volatile("csrw sepc, ra\n\t"
-                 "sret"
-                 );
+    asm volatile(
+        "csrw sepc, ra\n\t"
+        "sret"
+    );
 }
 
 void kTCB::threadWrapper() {
@@ -72,11 +71,9 @@ void kTCB::threadWrapper() {
 }
 
 void* kTCB::operator new(size_t size) {
-    return ((kTCB*) kMemoryAllocator::getInstance().kmem_alloc(size));
+    return ((kTCB*) kMemoryAllocator::instance().kmem_alloc(size));
 }
 
 void kTCB::operator delete(void* ptr) {
-    kMemoryAllocator::getInstance().mem_free((kTCB*) ptr);
+    kMemoryAllocator::instance().mem_free((kTCB*) ptr);
 }
-
-

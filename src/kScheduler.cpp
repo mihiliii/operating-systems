@@ -1,23 +1,19 @@
 #include "../h/kScheduler.h"
 
-kQueue<kTCB> kScheduler::queue_readyThreads;
+kQueue<kTCB> kScheduler::queue_ready_threads;
 
-kTCB *kScheduler::get() {
-    return queue_readyThreads.popData();
+kTCB* kScheduler::get() {
+    return queue_ready_threads.popData();
 }
 
 void kScheduler::put(kTCB* object) {
-    queue_readyThreads.pushData(object);
+    queue_ready_threads.pushData(object);
 }
 
-bool kScheduler::empty() {
-    return queue_readyThreads.isEmpty();
+bool kScheduler::isEmpty() {
+    return queue_ready_threads.isEmpty();
 }
 
-bool kScheduler::find(kTCB* object) {
-    return queue_readyThreads.find(object);
-}
-
-kTCB *kScheduler::removeElement(kTCB* object) {
-    return queue_readyThreads.removeElement(object);
+kTCB* kScheduler::removeElement(kTCB* object) {
+    return queue_ready_threads.removeElement(object);
 }

@@ -1,47 +1,50 @@
 #include "../h/ABI.h"
 #include "../h/kMemoryAllocator.h"
-#include "../h/kTCB.h"
 #include "../h/kSemaphore.h"
+#include "../h/kTCB.h"
 #include "../lib/console.h"
 
-struct ArgumentRegisters{
+struct ArgumentRegisters {
     uint64 a0, a1, a2, a3, a4;
 };
 
-extern "C" void loadArgumentRegisters(ArgumentRegisters* );
+extern "C" void loadArgumentRegisters(ArgumentRegisters*);
 
-void passArgumentsToSyscall(uint64 a0, uint64 a1, uint64 a2, uint64 a3, uint64 a4){
+void passArgumentsToSyscall(uint64 a0, uint64 a1, uint64 a2, uint64 a3, uint64 a4) {
     asm volatile("ecall");
 }
 
-extern "C" __attribute__((unused)) void handleSupervisorTrap(){
+extern "C" __attribute__((unused)) void handleSupervisorTrap() {
     uint64 scause;
-    asm volatile("csrr %[scauseASM], scause" : [scauseASM] "=r" (scause));
+    asm volatile("csrr %[scauseASM], scause" : [scauseASM] "=r"(scause));
 
-    if (scause == (0x08UL) || scause == (0x09UL)){
+    if (scause == (0x08UL) || scause == (0x09UL)) {
         uint64 sepc, sstatus;
-        asm volatile("csrr %[sepcASM], sepc\n\t"
-                     "csrr %[sstatusASM], sstatus"
-                     : [sepcASM] "=r" (sepc), [sstatusASM] "=r" (sstatus)
-                     );
+        asm volatile(
+            "csrr %[sepcASM], sepc\n\t"
+            "csrr %[sstatusASM], sstatus"
+            : [sepcASM] "=r"(sepc), [sstatusASM] "=r"(sstatus)
+        );
         sepc = sepc + 4;
-        ArgumentRegisters registers{};
+        ArgumentRegisters registers {};
         loadArgumentRegisters(&registers);
 
-        switch(registers.a0){
+        switch (registers.a0) {
             case 0x01:
-                kMemoryAllocator::getInstance().mem_alloc(registers.a1);
+                kMemoryAllocator::instance().mem_alloc(registers.a1);
                 asm volatile("sd a0, 10 * 8(fp)");
                 break;
 
             case 0x02:
-                kMemoryAllocator::getInstance().mem_free((void*) registers.a1);
+                kMemoryAllocator::instance().mem_free((void*) registers.a1);
                 asm volatile("sd a0, 10 * 8(fp)");
                 break;
 
             case 0x11:
-                kTCB::createThread((kTCB**) registers.a1, (void (*)(void*)) registers.a2,
-                                   (void*) registers.a3, (uint64*) registers.a4, true);
+                kTCB::createThread(
+                    (kTCB**) registers.a1, (void (*)(void*)) registers.a2, (void*) registers.a3,
+                    (uint64*) registers.a4, true
+                );
                 asm volatile("sd a0, 10 * 8(fp)");
                 break;
 
@@ -84,8 +87,10 @@ extern "C" __attribute__((unused)) void handleSupervisorTrap(){
                 break;
 
             case 0x101:
-                kTCB::createThread((kTCB**) registers.a1, (void (*)(void*)) registers.a2,
-                                   (void*) registers.a3, (uint64*) registers.a4, false);
+                kTCB::createThread(
+                    (kTCB**) registers.a1, (void (*)(void*)) registers.a2, (void*) registers.a3,
+                    (uint64*) registers.a4, false
+                );
                 asm volatile("sd a0, 10 * 8(fp)");
                 break;
 
@@ -103,23 +108,21 @@ extern "C" __attribute__((unused)) void handleSupervisorTrap(){
                 break;
         }
 
-        asm volatile("csrw sepc, %[sepcASM]\n\t"
-                     "csrw sstatus, %[sstatusASM]"
-                     : : [sepcASM] "r" (sepc), [sstatusASM] "r" (sstatus)
-                     );
+        asm volatile(
+            "csrw sepc, %[sepcASM]\n\t"
+            "csrw sstatus, %[sstatusASM]"
+            :
+            : [sepcASM] "r"(sepc), [sstatusASM] "r"(sstatus)
+        );
 
-    }
-    else if (scause == 0x8000000000000001UL){
+    } else if (scause == 0x8000000000000001UL) {
         asm volatile("csrc sip, 0x02");
-    }
-    else if (scause == 0x8000000000000009UL) {
+    } else if (scause == 0x8000000000000009UL) {
         console_handler();
         asm volatile("csrc sip, 0x02");
-    }
-    else {
+    } else {
         uint64 pc;
-        asm volatile("csrr %[pcreg], stval" : [pcreg] "=r" (pc));
+        asm volatile("csrr %[pcreg], stval" : [pcreg] "=r"(pc));
         asm volatile("csrc sip, 0x02");
     }
-
 }
