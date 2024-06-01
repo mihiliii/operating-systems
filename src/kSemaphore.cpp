@@ -1,6 +1,6 @@
 #include "../h/kSemaphore.h"
 
-kQueue<kSemaphore> kSemaphore::queue_semaphores;
+Queue<kSemaphore*> kSemaphore::queue_semaphores;
 
 int kSemaphore::wait() {
     this->value--;
@@ -8,7 +8,7 @@ int kSemaphore::wait() {
     if (this->value < 0) {
         kTCB* old = kTCB::running_thread;
         old->setStatus(kTCB::TS_SUSPENDED);
-        queue_blocked_threads.pushData(old);
+        queue_blocked_threads.push(old);
 
         kTCB::running_thread = kScheduler::get();
         kTCB::contextSwitch(&old->context, &kTCB::running_thread->context);
@@ -21,7 +21,7 @@ int kSemaphore::signal() {
     this->value++;
 
     if (this->value <= 0) {
-        kTCB* tcb = queue_blocked_threads.popData();
+        kTCB* tcb = queue_blocked_threads.pop();
         tcb->setStatus(kTCB::TS_READY);
         kScheduler::put(tcb);
     }
@@ -36,10 +36,10 @@ int kSemaphore::createSemaphore(kSemaphore** handle, unsigned init) {
 
 int kSemaphore::closeSemaphore(kSemaphore* handle) {
     while (!handle->queue_blocked_threads.isEmpty()) {
-        kScheduler::put(handle->queue_blocked_threads.popData());
+        kScheduler::put(handle->queue_blocked_threads.pop());
     }
 
-    kSemaphore::queue_semaphores.removeElement(handle);
+//    kSemaphore::queue_semaphores.removeElement(handle);
     delete handle;
     return 0;
 }

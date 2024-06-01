@@ -1,7 +1,7 @@
 #ifndef kScheduler_h
 #define kScheduler_h
 
-#include "kQueue.h"
+#include "Queue.h"
 
 class kTCB;
 
@@ -18,7 +18,7 @@ public:
 
 private:
 
-    static kQueue<kTCB> queue_ready_threads;
+    static Queue<kTCB*> queue_ready_threads;
 };
 
 #endif

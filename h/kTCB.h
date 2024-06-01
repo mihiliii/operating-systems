@@ -23,7 +23,7 @@ public:
 
     static kTCB* running_thread;
 
-    static kQueue<kTCB> queue_threads;
+    static Queue<kTCB*> queue_threads;
 
     //--methods--//
 
@@ -89,7 +89,7 @@ private:
                 kScheduler::put(this);
                 status = TS_READY;
             }
-            queue_threads.pushData(this);
+            queue_threads.push(this);
         }
         if (kTCB::running_thread == nullptr) {
             kTCB::running_thread = this;

@@ -1,7 +1,7 @@
 #include "../h/kTCB.h"
 
 kTCB* kTCB::running_thread = nullptr;
-kQueue<kTCB> kTCB::queue_threads;
+Queue<kTCB*> kTCB::queue_threads;
 
 extern "C" void pushAllRegisters();
 
@@ -52,7 +52,7 @@ int kTCB::exitThread() {
 
 int kTCB::deleteThread(kTCB* tcb) {
     kScheduler::removeElement(tcb);
-    kTCB::queue_threads.removeElement(tcb);
+//    kTCB::queue_threads.removeElement(tcb);
     delete tcb;
     return 0;
 }

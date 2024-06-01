@@ -2,6 +2,7 @@
 #include "../h/kSemaphore.h"
 #include "../h/kTCB.h"
 
+
 void userMain();
 
 void userMainWrapper(void* arg) {
@@ -35,12 +36,14 @@ void main() {
         }
     } while (!break_condition);
 
-    while (kSemaphore* sem = kSemaphore::queue_semaphores.popData()) {
+    while (kSemaphore* sem = kSemaphore::queue_semaphores.pop()) {
         kSemaphore::closeSemaphore(sem);
     }
 
-    while (kTCB* tcb = kTCB::queue_threads.popData()) {
+    while (kTCB* tcb = kTCB::queue_threads.pop()) {
         kTCB::deleteThread(tcb);
     }
     kTCB::deleteThread(mainT);
+
+
 }

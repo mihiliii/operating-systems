@@ -1,13 +1,13 @@
 #include "../h/kScheduler.h"
 
-kQueue<kTCB> kScheduler::queue_ready_threads;
+Queue<kTCB*> kScheduler::queue_ready_threads;
 
 kTCB* kScheduler::get() {
-    return queue_ready_threads.popData();
+    return queue_ready_threads.pop();
 }
 
 void kScheduler::put(kTCB* object) {
-    queue_ready_threads.pushData(object);
+    queue_ready_threads.push(object);
 }
 
 bool kScheduler::isEmpty() {
@@ -15,5 +15,6 @@ bool kScheduler::isEmpty() {
 }
 
 kTCB* kScheduler::removeElement(kTCB* object) {
-    return queue_ready_threads.removeElement(object);
+//    return queue_ready_threads.removeElement(object);
+    return nullptr;
 }

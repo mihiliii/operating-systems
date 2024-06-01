@@ -2,7 +2,7 @@
 #define kSemaphore_h
 
 #include "../lib/hw.h"
-#include "kQueue.h"
+#include "Queue.h"
 #include "kTCB.h"
 
 class kSemaphore {
@@ -20,16 +20,16 @@ public:
 
     void operator delete(void* ptr);
 
-    static kQueue<kSemaphore> queue_semaphores;
+    static Queue<kSemaphore*> queue_semaphores;
 
 private:
 
     explicit kSemaphore(uint32 init = 1) : value((int) init) {
-        queue_semaphores.pushData(this);
+        queue_semaphores.push(this);
     }
 
     int value;
-    kQueue<kTCB> queue_blocked_threads;
+    Queue<kTCB*> queue_blocked_threads;
 };
 
 #endif
