@@ -4,13 +4,15 @@
 
 void userMain();
 
-void userMainWrapper(void* arg) {
+void userMainWrapper(void* arg)
+{
     userMain();
 }
 
 typedef kTCB* thread_t;
 
-void main() {
+int main()
+{
     thread_t mainT, userMainT;
     auto stack_ptr =
         (uint64*) kMemoryAllocator::instance().kmem_alloc(DEFAULT_STACK_SIZE * sizeof(uint64));
@@ -29,7 +31,8 @@ void main() {
             kTCB* tcb = iterator->data;
             if (tcb->getStatus() != kTCB::TS_FINISHED) {
                 break_condition = false;
-            } else {
+            }
+            else {
                 kTCB::deleteThread(tcb);
             }
         }
@@ -43,4 +46,6 @@ void main() {
         kTCB::deleteThread(tcb);
     }
     kTCB::deleteThread(mainT);
+
+    return 0;
 }

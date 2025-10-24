@@ -1,0 +1,10 @@
+build/
+.cache/
+assembler
+linker
+emulator
+readelf32
+*.o
+*.txt
+*.hex
+tests/start.sh

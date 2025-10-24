@@ -7,17 +7,11 @@
 class kTCB {
 public:
 
-    enum Thread_Status {
-        TS_INITIALIZED,
-        TS_RUNNING,
-        TS_READY,
-        TS_SUSPENDED,
-        TS_FINISHED
-    };
+    enum Thread_Status { TS_INITIALIZED, TS_RUNNING, TS_READY, TS_SUSPENDED, TS_FINISHED };
 
     friend class kSemaphore;
 
-    friend void main();
+    friend int main();
 
     using BodyFunction = void (*)(void*);
 
@@ -25,19 +19,18 @@ public:
 
     static kQueue<kTCB> queue_threads;
 
-    //--methods--//
-
-    Thread_Status getStatus() const {
+    Thread_Status getStatus() const
+    {
         return status;
     }
 
-    void setStatus(Thread_Status thread_status) {
+    void setStatus(Thread_Status thread_status)
+    {
         this->status = thread_status;
     }
 
-    static int createThread(
-        kTCB** tcb, void (*body)(void*), void* args, uint64* ptr_stack, bool start
-    );
+    static int createThread(kTCB** tcb, void (*body)(void*), void* args, uint64* ptr_stack,
+                            bool start);
 
     static int startThread(kTCB* tcb);
 
@@ -49,7 +42,8 @@ public:
 
     static int deleteThread(kTCB* tcb);
 
-    ~kTCB() {
+    ~kTCB()
+    {
         kMemoryAllocator::instance().mem_free(stack);
     }
 
@@ -76,14 +70,14 @@ private:
 
     static void contextSwitch(kTCB::Context*, kTCB::Context*);
 
-    kTCB(BodyFunction body, void* args, uint64* ptr_stack, bool start = true) :
-        function_body(body),
-        arguments(args),
-        stack(body != nullptr ? ptr_stack : nullptr),
-        context(
-            {(uint64) &threadWrapper, (stack != nullptr ? (uint64) &stack[DEFAULT_STACK_SIZE] : 0)}
-        ),
-        status(TS_INITIALIZED) {
+    kTCB(BodyFunction body, void* args, uint64* ptr_stack, bool start = true)
+        : function_body(body),
+          arguments(args),
+          stack(body != nullptr ? ptr_stack : nullptr),
+          context({(uint64) &threadWrapper,
+                   (stack != nullptr ? (uint64) &stack[DEFAULT_STACK_SIZE] : 0)}),
+          status(TS_INITIALIZED)
+    {
         if (body != nullptr) {
             if (start) {
                 kScheduler::put(this);

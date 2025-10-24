@@ -24,7 +24,8 @@ public:
 
 private:
 
-    explicit kSemaphore(uint32 init = 1) : value((int) init) {
+    explicit kSemaphore(uint32 init = 1) : value((int) init)
+    {
         queue_semaphores.pushData(this);
     }
 

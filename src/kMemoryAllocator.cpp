@@ -1,9 +1,10 @@
 #include "../h/kMemoryAllocator.h"
 
-kMemoryAllocator::kMemoryAllocator() {
-    head = (size_t) HEAP_START_ADDR % 64 == 0 ?
-               (FreeMem*) HEAP_START_ADDR :
-               (FreeMem*) ((size_t) HEAP_START_ADDR + (64 - ((size_t) HEAP_START_ADDR % 64)));
+kMemoryAllocator::kMemoryAllocator()
+{
+    head = (size_t) HEAP_START_ADDR % 64 == 0
+               ? (FreeMem*) HEAP_START_ADDR
+               : (FreeMem*) ((size_t) HEAP_START_ADDR + (64 - ((size_t) HEAP_START_ADDR % 64)));
     head->size = ((size_t) HEAP_END_ADDR - (size_t) head);
     head->next = nullptr;
 }
@@ -12,19 +13,22 @@ kMemoryAllocator::kMemoryAllocator() {
  * Kernel metoda koja datu velicinu size, izrazenu u bajtovima, prebacuje u broj blokova
  * a zatim poziva mem_alloc, pri cemu ce se standardno alocirati memoriju.
  */
-void* kMemoryAllocator::kmem_alloc(size_t size) {
+void* kMemoryAllocator::kmem_alloc(size_t size)
+{
     size += sizeof(FreeMem);
 
     if (size % MEM_BLOCK_SIZE != 0) {
         size = size / MEM_BLOCK_SIZE + 1;
-    } else {
+    }
+    else {
         size /= MEM_BLOCK_SIZE;
     }
 
     return mem_alloc(size);
 }
 
-void* kMemoryAllocator::mem_alloc(size_t size_in_blocks) {
+void* kMemoryAllocator::mem_alloc(size_t size_in_blocks)
+{
     size_t size = size_in_blocks * MEM_BLOCK_SIZE;
     FreeMem* current = head;
     FreeMem* previous = current;
@@ -36,7 +40,8 @@ void* kMemoryAllocator::mem_alloc(size_t size_in_blocks) {
             if (size < current->size) {
                 if (current == head) {
                     head = (FreeMem*) ((char*) current + size);
-                } else {
+                }
+                else {
                     previous->next = (FreeMem*) ((char*) current + size);
                 }
 
@@ -48,7 +53,8 @@ void* kMemoryAllocator::mem_alloc(size_t size_in_blocks) {
             else if (size == current->size) {
                 if (current == head) {
                     head = head->next;
-                } else {
+                }
+                else {
                     previous->next = current->next;
                 }
             }
@@ -65,7 +71,8 @@ void* kMemoryAllocator::mem_alloc(size_t size_in_blocks) {
     return nullptr;
 }
 
-int kMemoryAllocator::mem_free(void* ptr) {
+int kMemoryAllocator::mem_free(void* ptr)
+{
     FreeMem* free_block = (FreeMem*) ptr - 1;
 
     if (free_block < HEAP_START_ADDR || free_block >= HEAP_END_ADDR) {
@@ -118,7 +125,8 @@ int kMemoryAllocator::mem_free(void* ptr) {
     if (free_block < head) {
         free_block->next = head;
         head = free_block;
-    } else {
+    }
+    else {
         free_block->next = current->next;
         current->next = free_block;
     }
@@ -126,7 +134,8 @@ int kMemoryAllocator::mem_free(void* ptr) {
     return 0;
 }
 
-kMemoryAllocator& kMemoryAllocator::instance() {
+kMemoryAllocator& kMemoryAllocator::instance()
+{
     static kMemoryAllocator memory_allocator;
     return memory_allocator;
 }
